@@ -3,10 +3,16 @@ import dotenv from "dotenv";
 import "./models/Users.js";
 import passport from "./services/passport.js";
 import authRoutes from "./authRoutes/routes.js";
+import mongoose from "mongoose";
 import session from "express-session";
+import keys from "./config/keys.js";
+dotenv.config();
 
 const app = express();
-dotenv.config();
+
+console.log("MONGO_URI:", process.env.MONGO_URI);
+
+mongoose.connect(keys.mongoURI);
 
 app.use(
   session({
