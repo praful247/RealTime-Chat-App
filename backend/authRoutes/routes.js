@@ -4,6 +4,10 @@ const router = express.Router();
 
 router.get(
   "/auth/google",
+  (req, res, next) => {
+    console.log("🔁 Google auth route hit");
+    next();
+  },
   passport.authenticate("google", {
     scope: ["profile", "email"],
   })
@@ -26,7 +30,12 @@ router.get("/api/logout", (req, res, next) => {
   });
 });
 
-router.get("/api/current_user", (req, res) => {
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.status(401).send("Not authenticated");
+}
+
+router.get("/api/current_user", isAuthenticated, (req, res) => {
   res.send(req.user); /// it gives as response who logged in
 });
 

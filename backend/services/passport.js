@@ -1,24 +1,17 @@
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import keys from "../config/keys.js";
-import mongoose from "mongoose";
 import passport from "passport";
-
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import keys from "./../config/keys.js";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+dotenv.config();
 const User = mongoose.model("users");
-
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser((id, done) => {
-  User.findById(id).then((user) => {
-    done(null, user);
-  });
-});
 
 passport.use(
   new GoogleStrategy(
     {
       clientID: keys.googleClientID,
       clientSecret: keys.googleClientSecret,
-      callbackURL:
-        "https://emailandpayment-2.onrender.com/auth/google/callback",
+      callbackURL: "/auth/google/callback",
       proxy: true,
     },
 
@@ -34,3 +27,12 @@ passport.use(
     }
   )
 );
+
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser((id, done) => {
+  User.findById(id).then((user) => {
+    done(null, user);
+  });
+});
+
+export default passport;
