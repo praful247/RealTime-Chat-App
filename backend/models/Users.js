@@ -1,7 +1,17 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  googleID: String,
-});
+  googleID:{
+    type:String,
+    required:true,
+  },
+  username:{
+    type:String,
+    required:true,
+  },
+  name:String,
+  email:String,
+  gender:String,
+},{timestamps:true});
 
-mongoose.model("users", userSchema);
+export default mongoose.model("users", userSchema);

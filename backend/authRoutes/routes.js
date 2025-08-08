@@ -1,5 +1,7 @@
 import express from "express";
 import passport from "passport";
+import generatetokenandsetcookie from "../utils/jwttokens.js";
+import protectRoute from "../middleware/protectedroutes.js";
 const router = express.Router();
 
 router.get(
@@ -15,27 +17,35 @@ router.get(
 
 router.get(
   "/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/" }),
+  passport.authenticate("google", { 
+    failureRedirect: "http://localhost:5173/",
+    session:false, //using jwt 
+  }),
   (req, res) => {
-    res.send("✅ Google login success");
+   
+generatetokenandsetcookie(req.user._id, res);
+   res.redirect("http://localhost:5173/"); // This will redirect the user to the home page
+// res.send("✅ Google login success"); // This will log to your server console
   }
 );
 
-router.get("/api/logout", (req, res, next) => {
-  req.logout(function (err) {
-    if (err) {
-      return next(err);
-    }
-    res.send("Logged out successfully ");
+router.post("/api/logout", (req, res) => {
+  // req.logout(function (err) {
+  //   if (err) {
+  //     return next(err);
+  //   }
+    res.cookie("jwt", "" ,{maxAge:0});
+    res.status(201).json({message: "logged out successfully"});
+    // res.send("Logged out successfully ");
   });
-});
 
-function isAuthenticated(req, res, next) {
-  if (req.isAuthenticated()) return next();
-  res.status(401).send("Not authenticated");
-}
 
-router.get("/api/current_user", isAuthenticated, (req, res) => {
+// function isAuthenticated(req, res, next) {
+//   if (req.isAuthenticated()) return next();   // we are using jwt not cookie session
+//   res.status(401).send("Not authenticated");
+// }
+
+router.get("/api/current_user", protectRoute, (req, res) => {
   res.send(req.user); /// it gives as response who logged in
 });
 

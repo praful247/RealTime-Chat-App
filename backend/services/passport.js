@@ -12,27 +12,47 @@ passport.use(
       clientID: keys.googleClientID,
       clientSecret: keys.googleClientSecret,
       callbackURL: "/auth/google/callback",
+      scope:[
+        'profile',
+        'email',
+        'https://www.googleapis.com/auth/user.gender.read',
+      ],
       proxy: true,
     },
 
     async (accessToken, refreshToken, profile, done) => {
+      try{
       const existingUser = await User.findOne({ googleID: profile.id });
 
       if (existingUser) {
         return done(null, existingUser);
       }
 
-      const user = await new User({ googleID: profile.id }).save();
+      const user = await new User({ 
+        googleID: profile.id ,
+        username: profile.displayName,
+        name : profile.name.givenName + ' ' + profile.name.familyName,
+        email: profile.emails[0].value,
+        
+      });
+      if(profile.gender)
+      {
+        user.gender=profile.gender;
+      }
+      await user.save();
       done(null, user);
+    } catch(err){
+      done(err,null);
+    }
     }
   )
 );
 
-passport.serializeUser((user, done) => done(null, user.id));
-passport.deserializeUser((id, done) => {
-  User.findById(id).then((user) => {
-    done(null, user);
-  });
-});
+// passport.serializeUser((user, done) => done(null, user.id));  These are needed for cookie based authentication
+// passport.deserializeUser((id, done) => {
+//   User.findById(id).then((user) => {
+//     done(null, user);
+//   });
+// });
 
 export default passport;
