@@ -1,11 +1,14 @@
 import React from 'react'
-
-function home() {
+import Sidebar from '../../components/Sidebar/sidebar';
+import Messagecontainer from '../../components/messages/messagecontainer';
+function Home() {
   return (
-    <div>
+    <div className='flex sm:h-[450px] md:h-[550px] rounded-lg overflow-hidden bg-gray-400 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0'>
+      <Sidebar />
+      <Messagecontainer />  
       
     </div>
   )
 }
 
-export default home
+export default Home;

@@ -1,10 +1,27 @@
 @import "tailwindcss"; 
-/* @plugin "daisyui"; */
+@plugin "daisyui";
 
 body{
-  background: linear-gradient(rgba(0,0,0,0.2),rgba(226, 227, 220, 0.2)),url("/175581-wall-el_original-amor_de_chat-song-lyrics-550x310.jpg");
+  background: url("/175581-wall-el_original-amor_de_chat-song-lyrics-550x310.jpg");
   background-repeat: no-repeat;
-  background-size:cover ;
+  background-size:cover;
   background-position: center;
   background-attachment: fixed;
+}
+
+::-webkit-scrollbar{
+  width: 9px;
+}
+
+::-webkit-scrollbar-track{
+  background: #555;
+}
+
+::-webkit-scrollbar-thumb{
+  background:#121212;
+  border-radius:5px;
+}
+
+::-webkit-scrollbar-thumb-hover{
+  background: #242424;
 }
