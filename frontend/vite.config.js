@@ -11,7 +11,16 @@ export default defineConfig({
   server:{
     proxy:{
       '/auth':{
-        target:'http://localhost:5000'
+        target:'http://localhost:5000'  // act as middleman sends it to backend server 
+      },
+      '/api':{
+        target:'http://localhost:5000'  // act as middleman sends it to backend server 
+      },
+      '/messages':{
+        target:'http://localhost:5000'  // act as middleman sends it to backend server 
+      },
+      '/users':{
+        target:'http://localhost:5000'  // act as middleman sends it to backend server 
       },
     },
   },
