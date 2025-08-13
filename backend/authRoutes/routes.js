@@ -11,31 +11,38 @@ router.get(
     next();
   },
   passport.authenticate("google", {
-    scope: ["profile", "email"],
+      prompt: "select_account",
+    scope: [
+      "profile",
+       "email",
+       "https://www.googleapis.com/auth/user.gender.read",
+    ],
   })
 );
 
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", { 
-    failureRedirect: "http://localhost:5173/login",
+    failureRedirect: "http://localhost:5173/",
+    //  successRedirect: 'http://localhost:5173/home',
     session:false, //using jwt 
   }),
   (req, res) => {
    
 generatetokenandsetcookie(req.user._id, res);
-   res.redirect("http://localhost:5173/"); // This will redirect the user to the home page
+   res.redirect("http://localhost:5173/home"); // This will redirect the user to the home page
 // res.send("✅ Google login success"); // This will log to your server console
   }
 );
 
-router.post("/api/logout", (req, res) => {
+router.get("/api/logout", (req, res) => {
   // req.logout(function (err) {
   //   if (err) {
   //     return next(err);
   //   }
     res.cookie("jwt", "" ,{maxAge:0});
-    res.status(201).json({message: "logged out successfully"});
+ 
+    res.redirect("http://localhost:5173/");
     // res.send("Logged out successfully ");
   });
 
@@ -45,7 +52,7 @@ router.post("/api/logout", (req, res) => {
 //   res.status(401).send("Not authenticated");
 // }
 
-router.get("/api/current_user", protectRoute, (req, res) => {
+router.get("/api/user", protectRoute, (req, res) => {
   res.send(req.user); /// it gives as response who logged in
 });
 

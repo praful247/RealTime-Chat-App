@@ -11,7 +11,7 @@ passport.use(
     {
       clientID: keys.googleClientID,
       clientSecret: keys.googleClientSecret,
-      callbackURL: "/auth/google/callback",
+      callbackURL: "http://localhost:8000/auth/google/callback",
       scope:[
         'profile',
         'email',
@@ -31,15 +31,17 @@ passport.use(
       const user = await new User({ 
         googleID: profile.id ,
         username: profile.displayName,
-        name : profile.name.givenName + ' ' + profile.name.familyName,
+        name: profile.displayName,
         email: profile.emails[0].value,
+        gender:profile.gender,
+        profilePic: profile.photos[0].value,
         
-      });
-      if(profile.gender)
-      {
-        user.gender=profile.gender;
-      }
-      await user.save();
+      }).save();
+      // if(profile.gender)
+      // {
+      //   user.gender=profile.gender;
+      // }
+      // await user.save();
       done(null, user);
     } catch(err){
       done(err,null);

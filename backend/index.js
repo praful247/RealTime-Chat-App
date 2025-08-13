@@ -39,7 +39,7 @@ app.use(passport.initialize());
 
 app.use(authRoutes);
 app.use("/messages" , messageRoutes);
-app.use("/users" ,userRoutes );  // this tells express "For any incoming request whose path starts with /users, I want you to pass it over to the userRoutes router
+app.use("/api/users" ,userRoutes );  // this tells express "For any incoming request whose path starts with /users, I want you to pass it over to the userRoutes router
 
 app.listen(PORT, () =>{
   connecttomongodb();

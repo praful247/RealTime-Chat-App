@@ -1,12 +1,13 @@
 import Searchinput from "./Searchinput";
 import Conversations from "./Conversations.jsx";
+import Logout from "./Logout.jsx";
 function Sidebar() {
     return (
-        <div>
+        <div className="relative">
             <Searchinput/>
             <div className="divider px-3"></div>
           <Conversations/>
-            {/* <LogoutButton/>  */}
+            <Logout/> 
         </div>
     )
 }

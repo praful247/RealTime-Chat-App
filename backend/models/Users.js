@@ -9,9 +9,22 @@ const userSchema = new mongoose.Schema({
     type:String,
     required:true,
   },
-  name:String,
+   name:
+  {
+     type:String,
+    required:true,
+  },
+  profilePic:{
+    type:String,
+    default:function(){
+       return `https://ui-avatars.com/api/?name=${this.name.split(" ").join("+")}`;
+  },
+},
   email:String,
-  gender:String,
+  gender:{
+     type:String,
+    required:true,
+  },
 },{timestamps:true});
 
 export default mongoose.model("users", userSchema);

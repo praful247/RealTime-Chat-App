@@ -5,15 +5,21 @@ export const sendmessage  = async (req,res)=>{
         const {message} = req.body;
         const {id:receiverID}=req.params;
         const senderID = req.user._id; // we set req.user = user in protectedroute file
+       
+        if(!message?.trim()){
+            return res.status(400).json({error: "Message not empty"});
+        }
 
-       const conversation =  await Conversation.findOne({
+       let conversation =  await Conversation.findOne({
             participants:{ $all:[senderID,receiverID]},
-        })
+        });
+
        if(!conversation){
        conversation = await Conversation.create({
             participants:[senderID,receiverID],
             // messages:[message], no need to set messages here it is default empty 
         })
+    }
 
         const newmessage = await Message.create({
              message,
@@ -22,28 +28,26 @@ export const sendmessage  = async (req,res)=>{
 
         })
 
-     if(newmessage){
+    //  if(newmessage){
         conversation.messages.push(newmessage._id);
-       
-        res.status(200).json({
-            message:"Message sent successfully",
-              
-        })
-     }
+        await conversation.save();
+        // return res.status(200).json(newmessage);
+    //  }
 
     //  await newconversation.save(); 
     //  await newmessage.save();
-
-     await Promise.all([conversation.save(),newmessage.save()]); // this will run in parallel at the same time
+    // await Promise.all([conversation.save(),newmessage.save()]); // this will run in parallel at the same time
+    return res.status(200).json(newmessage); // sending data back to client v imp 
+   
     }
-}
+
 
     
     catch(error){
         console.log("Error in message sending");
     }
    
-}
+};
 
 export const getmessages = async (req,res)=>{
     try{
@@ -61,6 +65,7 @@ export const getmessages = async (req,res)=>{
         }
 
         const messages = conversation.messages;
+        res.status(200).json(messages);
     }
     catch(error){
         console.log("Error in getting messages",error.message);
