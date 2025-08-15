@@ -21,6 +21,12 @@ const __dirname = path.dirname(__filename);
 
 app.use(express.json());
 app.use(cookieParser());
+
+if(process.env.NODE_ENV==="production"){
+  app.use(express.static(path.join(__dirname,"../frontend/dist")));
+}
+
+
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
 
