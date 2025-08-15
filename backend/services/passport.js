@@ -11,7 +11,7 @@ passport.use(
     {
       clientID: keys.googleClientID,
       clientSecret: keys.googleClientSecret,
-      callbackURL: "http://localhost:8000/auth/google/callback",
+      callbackURL: "https://realtime-chat-app-vqmj.onrender.com/auth/google/callback",
       scope:[
         'profile',
         'email',
