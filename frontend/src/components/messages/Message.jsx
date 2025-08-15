@@ -5,16 +5,22 @@ import { extractTime } from "../../../utils/extractTime.js";
 
 function Message({message}) {
   const {selectedConversation} = useConversation();
-  const {currentuser} = useCurrentUser();
+  const { currentUser} = useCurrentUser();
   const formattedTime = extractTime(message.createdAt);
   const shakeClass = message.shouldShake ? "shake" : "";
-  const fromme = message.senderID ==currentuser?._id;
-  const chatclassname =  fromme ? 'chat-start' : 'chat-end';
-  const profilePic = fromme ?currentuser.profilePic: selectedConversation.profilePic;
+  const fromme = String(message.senderID) == String(currentUser?._id);
+  const chatclassname =  fromme ? 'chat-end' : 'chat-start' ;
   const bubblebgcolor = fromme ? 'bg-blue-500' : "";
-  const name = fromme ? currentuser.name : selectedConversation.name;
+  const name = fromme ? currentUser?.name : selectedConversation.name;
   
+  // if(loading || currentUser){
+  //   return <div className="animate-pulse" >Loading.....</div>
+  // }
+
+  const myFallback = currentUser?.name? `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.name)}` : undefined;
+  const otherFallback = selectedConversation?.name? `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedConversation.name)}` : undefined;
    
+   const profilePic = fromme ? ( myFallback) : ( otherFallback);
   
     return (
 
@@ -22,7 +28,7 @@ function Message({message}) {
   <div className="chat-image avatar">
     <div className="w-10 rounded-full">
       <img
-        alt="Tailwind CSS chat bubble component"
+        alt="bdb"
         src={profilePic}
       />
     </div>

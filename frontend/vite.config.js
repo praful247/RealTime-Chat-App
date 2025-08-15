@@ -24,7 +24,7 @@ export default defineConfig({
       '/users':{
         target:'http://localhost:8000' ,
         changeOrigin: true,
-      secure: false, // act as middleman sends it to backend server 
+        secure: false, // act as middleman sends it to backend server 
       },
     },
   },

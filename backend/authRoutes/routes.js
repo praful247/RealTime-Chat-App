@@ -11,11 +11,12 @@ router.get(
     next();
   },
   passport.authenticate("google", {
-      prompt: "select_account",
+     prompt: 'consent select_account',
     scope: [
       "profile",
        "email",
        "https://www.googleapis.com/auth/user.gender.read",
+     
     ],
   })
 );

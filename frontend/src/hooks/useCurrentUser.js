@@ -3,11 +3,19 @@ import { useState, useEffect } from 'react';
 const useCurrentUser = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  // console.log(currentUser);
   useEffect(() => {
     const getCurrentUser = async () => {
       try {
-        const res = await fetch('/api/user');
+       
+        const storedUser = localStorage.getItem('currentUser');
+        if(storedUser){
+          setCurrentUser(JSON.parse(storedUser));
+          setLoading(false);
+        }
+
+        const res = await fetch('/api/user',);
+        if(!res.ok) throw new Error('Failed to fetch current user');
         const userData = await res.json();
         setCurrentUser(userData);
       } catch (error) {

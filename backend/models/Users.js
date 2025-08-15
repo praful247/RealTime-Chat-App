@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
     default:function(){
        return `https://ui-avatars.com/api/?name=${this.name.split(" ").join("+")}`;
   },
+  
 },
   email:String,
   gender:{

@@ -6,13 +6,14 @@ import cookieParser from "cookie-parser";
 import passport from "./services/passport.js";
 import authRoutes from "./authRoutes/routes.js";
 import userRoutes from "./authRoutes/userRoutes.js";
+import { app,server } from "./socket/socket.js";
 
 import connecttomongodb from "./db/connecttomongodp.js";
 import path from "path";
 import {fileURLToPath} from "url";
 dotenv.config();
 
-const app = express();
+
 const PORT = process.env.PORT || 5000;
 
 const __filename = fileURLToPath(import.meta.url);
@@ -41,7 +42,7 @@ app.use(authRoutes);
 app.use("/messages" , messageRoutes);
 app.use("/api/users" ,userRoutes );  // this tells express "For any incoming request whose path starts with /users, I want you to pass it over to the userRoutes router
 
-app.listen(PORT, () =>{
+server.listen(PORT, () =>{
   connecttomongodb();
 console.log(`server is running on port ${PORT}`)
 } );
