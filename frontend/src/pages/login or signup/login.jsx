@@ -16,8 +16,6 @@ function Login() {
             <div>
                 <button className="btn btn-block btn-sm mt-2" onClick={handleGoogleLogin}>Login With Google</button>
             </div>
-      
-
 </div>
 </div>
 

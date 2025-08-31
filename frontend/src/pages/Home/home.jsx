@@ -7,7 +7,7 @@ function Home() {
       <Sidebar />
       <Messagecontainer />  
       
-    </div>
+      </div>
   )
 }
 

@@ -9,7 +9,7 @@ function App() {
     <div className='p-4 h-screen flex items-center justify-center'>
         {/* <Login/> */}
         <Routes>
-           <Route path="/" element={<Login/>} />
+        <Route path="/" element={<Login/>} />
         <Route path="/home" element={<Home/>} />
        
         </Routes>

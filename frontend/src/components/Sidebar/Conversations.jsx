@@ -3,7 +3,7 @@ import useGetConversations from "../../hooks/useGetConversations.js";
 import Conversation from "./Conversation.jsx"
 
 const Conversations = () => {
-const {Loading,conversations} =   useGetConversations();
+const {Loading,conversations} =useGetConversations();
 console.log(conversations);
   return (
     <div className="py-2 flex flex-col overflow-auto relative">

@@ -8,7 +8,7 @@ function MessageInput() {
       const {Loading,sendMessages} = useSendMessages();
    const handlesubmit = async(e) =>{
       e.preventDefault();  // this will helps in not reloading every time you send messages 
-      if(!message) return;  
+      if(!message) return;
       //ekse
       await sendMessages(message);//sending message
       setmessage("");
