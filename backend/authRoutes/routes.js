@@ -24,14 +24,16 @@ router.get(
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", { 
-    failureRedirect: "http://localhost:5173/",
+    failureRedirect: `${process.env.FRONTEND_URL || "http://localhost:5173"}/`,
+
     //  successRedirect: 'http://localhost:5173/home',
     session:false, //using jwt 
   }),
   (req, res) => {
    
 generatetokenandsetcookie(req.user._id, res);
-   res.redirect("http://localhost:5173/home"); // This will redirect the user to the home page
+res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/home`);
+// This will redirect the user to the home page
 // res.send("✅ Google login success"); // This will log to your server console
   }
 );
@@ -43,7 +45,7 @@ router.get("/api/logout", (req, res) => {
   //   }
     res.cookie("jwt", "" ,{maxAge:0});
  
-    res.redirect("http://localhost:5173/");
+    res.redirect(`${process.env.FRONTEND_URL || "http://localhost:5173"}/`);
     // res.send("Logged out successfully ");
   });
 
