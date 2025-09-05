@@ -18,3 +18,9 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
+  - type: static
+    name: frontend
+    env: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
