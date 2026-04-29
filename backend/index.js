@@ -21,8 +21,6 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.use(cookieParser());
 
-
-
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
 
@@ -51,6 +49,10 @@ if(process.env.NODE_ENV==="production"){
     // Catch-all handler: send back React's index.html file for any non-API routes
     app.get('*', (req, res) => {
       res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+      if (err) {
+                console.error("FRONTEND ERROR: Could not find index.html at:", path.join(buildPath, 'index.html'));
+                res.status(404).send("Build file not found on server.");
+            }
     });
     
 }

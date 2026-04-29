@@ -16,7 +16,6 @@ router.get(
       "profile",
        "email",
        "https://www.googleapis.com/auth/user.gender.read",
-     
     ],
   })
 );
