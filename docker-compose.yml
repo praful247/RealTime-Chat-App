@@ -1,23 +1,15 @@
-version: "3.8" # Updated version for better feature support
+version: "3"
 services:
   web:
     build: .
     ports:
       - "3000:3000"
     volumes:
-      - .:/app # Matches a standard 'WORKDIR /app'
-      - /app/node_modules # Anonymous volume to protect container modules
-    depends_on:
+      - .:/home/node/code
+      - /home/node/code/node_modules
+    links:
       - db
     environment:
-      - MONGO_CONNECTION_STRING=mongodb://db:27017/chat-app
-  
+      MONGO_CONNECTION_STRING: mongodb://db:27017
   db:
-    image: mongo:latest # Use a modern version
-    ports:
-      - "27017:27017" # Allows you to use MongoDB Compass on your laptop to see the data
-    volumes:
-      - mongo-data:/data/db # Persists your chat history so it's not deleted
-
-volumes:
-  mongo-data: # Named volume for database persistence
+    image: mongo:3
