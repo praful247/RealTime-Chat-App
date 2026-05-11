@@ -10,6 +10,6 @@ services:
     links:
       - db
     environment:
-      MONGO_CONNECTION_STRING: mongodb://db:27017
+      MONGO_CONNECTION_STRING: process.env.MONGO_URI
   db:
     image: mongo:3
