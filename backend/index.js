@@ -1,4 +1,5 @@
 import express from "express";
+import fs from "fs";
 import dotenv from "dotenv";
 import "./models/Users.js";
 import messageRoutes from "./authRoutes/messageroutes.js";
@@ -14,6 +15,28 @@ import {fileURLToPath} from "url";
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
+const distIndexPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "../frontend/dist/index.html");
+const distExists = fs.existsSync(distIndexPath);
+
+// #region agent log
+fetch("http://127.0.0.1:7936/ingest/bf1339d7-8f32-49d2-8e5b-b874c50dd268", {
+	method: "POST",
+	headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "77c9b3" },
+	body: JSON.stringify({
+		sessionId: "77c9b3",
+		location: "backend/index.js:pre-routes",
+		message: "Runtime env and assets before routes",
+		data: {
+			PORT,
+			nodeEnv: process.env.NODE_ENV ?? null,
+			distExists,
+			mongoConfigured: !!(process.env.MONGO_URI || process.env.MONGO_CONNECTION_STRING),
+		},
+		timestamp: Date.now(),
+		hypothesisId: "H2-H3-H4",
+	}),
+}).catch(() => {});
+// #endregion
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,24 +66,39 @@ app.use("/messages" , messageRoutes);
 app.use("/api/users" ,userRoutes );  // this tells express "For any incoming request whose path starts with /users, I want you to pass it over to the userRoutes router
 
 
-if(process.env.NODE_ENV==="production"){
-  app.use(express.static(path.join(__dirname,"../frontend/dist")));
-
-    // Catch-all handler: send back React's index.html file for any non-API routes
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-      if (err) {
-                console.error("FRONTEND ERROR: Could not find index.html at:", path.join(buildPath, 'index.html'));
-                res.status(404).send("Build file not found on server.");
-            }
-    });
-    
+if (process.env.NODE_ENV === "production") {
+	const distDir = path.join(__dirname, "../frontend/dist");
+	const indexHtml = path.join(distDir, "index.html");
+	app.use(express.static(distDir));
+	app.get("*", (req, res) => {
+		res.sendFile(indexHtml, (err) => {
+			if (err) {
+				console.error("FRONTEND ERROR: Could not send index.html:", err.message);
+				res.status(404).send("Build file not found on server.");
+			}
+		});
+	});
 }
 
 
 
-server.listen(PORT, () =>{
-  connecttomongodb();
-console.log(`server is running on port ${PORT}`)
-} );
+server.listen(PORT, "0.0.0.0", () => {
+	connecttomongodb();
+	console.log(`server is running on port ${PORT}`);
+	// #region agent log
+	const addr = server.address();
+	fetch("http://127.0.0.1:7936/ingest/bf1339d7-8f32-49d2-8e5b-b874c50dd268", {
+		method: "POST",
+		headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "77c9b3" },
+		body: JSON.stringify({
+			sessionId: "77c9b3",
+			location: "backend/index.js:listen",
+			message: "HTTP server listen result",
+			data: { PORT, listenAddress: addr },
+			timestamp: Date.now(),
+			hypothesisId: "H5",
+		}),
+	}).catch(() => {});
+	// #endregion
+});
  

@@ -1,13 +1,24 @@
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 WORKDIR /usr/src/app
 
-# Install dependencies
 COPY package*.json ./
-RUN npm install --production
+RUN npm ci
 
-# Copy source code
-COPY . .
+COPY frontend/package*.json ./frontend/
+RUN cd frontend && npm ci
 
-# Express usually runs on 3000 or 8080
-EXPOSE 3000
-CMD ["node", "index.js"]
+COPY frontend ./frontend
+RUN cd frontend && npm run build
+
+FROM node:18-alpine AS runner
+WORKDIR /usr/src/app
+ENV NODE_ENV=production
+
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY backend ./backend
+COPY --from=builder /usr/src/app/frontend/dist ./frontend/dist
+
+EXPOSE 5000
+CMD ["node", "backend/index.js"]

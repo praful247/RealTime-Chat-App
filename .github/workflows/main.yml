@@ -32,6 +32,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -40,28 +41,46 @@ jobs:
   deploy:
     name: Deploy to AWS EC2
     runs-on: ubuntu-latest
-    needs: push_to_registry # FIXED: Matches the job ID above
+    needs: push_to_registry
     steps:
+      - name: Docker-safe container name
+        id: slug
+        shell: bash
+        run: |
+          raw='${{ github.event.repository.name }}'
+          slug=$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\{2,\}/-/g;s/^-//;s/-$//')
+          if [ -z "$slug" ]; then slug=webapp; fi
+          echo "container=${slug}" >> "$GITHUB_OUTPUT"
+
       - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          CONTAINER_NAME: ${{ steps.slug.outputs.container }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOCKER_USER,REPO_NAME,CONTAINER_NAME,MONGO_URI,PUBLIC_APP_URL
           script: |
-            # 1. Pull directly using GitHub Context (No bash variables)
-            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
-            
-            # 2. Stop and remove using the Repo Name context
-            docker stop ${{ github.event.repository.name }} || true
-            docker rm ${{ github.event.repository.name }} || true
-            
-            # 3. Run the new container
+            set -e
+            docker pull "${DOCKER_USER}/${REPO_NAME}:latest"
+            docker stop "${CONTAINER_NAME}" || true
+            docker rm "${CONTAINER_NAME}" || true
+            FE_ARGS=""
+            if [ -n "$PUBLIC_APP_URL" ]; then
+              FE_ARGS="-e FRONTEND_URL=${PUBLIC_APP_URL}"
+            fi
             docker run -d \
-              --name ${{ github.event.repository.name }} \
-              -p 80:5173 \
+              --name "${CONTAINER_NAME}" \
+              -p 80:5000 \
+              -e NODE_ENV=production \
+              -e MONGO_URI="${MONGO_URI}" \
+              -e MONGO_CONNECTION_STRING="${MONGO_URI}" \
+              ${FE_ARGS} \
               --restart always \
-              ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
-
-            # 4. Cleanup
+              "${DOCKER_USER}/${REPO_NAME}:latest"
             docker image prune -f

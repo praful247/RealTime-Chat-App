@@ -16,7 +16,8 @@ export const SocketContextprovider = ({children}) => {
     const { currentUser } = useCurrentUser();
     useEffect(() => {
         if(!currentUser?._id) return;
-        const newSocket = io("http://localhost:8000",{
+        const socketUrl = import.meta.env.DEV ? "http://localhost:8000" : window.location.origin;
+        const newSocket = io(socketUrl,{
             query:{
                 userId: currentUser._id
             }

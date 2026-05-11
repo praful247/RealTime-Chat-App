@@ -7,9 +7,17 @@ const app = express();
 
 const server = http.createServer(app);
 
+const productionOrigins = () => {
+	if (process.env.NODE_ENV !== "production") return ["http://localhost:5173"];
+	const url = process.env.FRONTEND_URL?.trim();
+	if (url) return [url];
+	// Allow browser origin when the SPA is served from the same host (e.g. EC2 public IP on :80).
+	return true;
+};
+
 const io = new Server(server, {
 	cors: {
-		origin:process.env.NODE_ENV === "production" ? [process.env.FRONTEND_URL || "https://realtime-chat-app-vqmj.onrender.com"] : ["http://localhost:5173"],
+		origin: productionOrigins(),
 		methods: ["GET", "POST"],
 	},
 });
