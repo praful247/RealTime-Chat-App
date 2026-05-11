@@ -9,33 +9,33 @@ jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.image.outputs.tag }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
-      
+
+      - name: Compute lowercase image tag
+        id: image
+        shell: bash
+        run: |
+          raw="${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}"
+          tag=$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]')
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          # This creates a tag like 'username/chat-app:latest'
-          images: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}
-          tags: |
-            type=raw,value=latest
-      
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.image.outputs.tag }}:latest
 
   # JOB 2: Secure SSH Deployment
   deploy:
@@ -43,44 +43,35 @@ jobs:
     runs-on: ubuntu-latest
     needs: push_to_registry
     steps:
-      - name: Docker-safe container name
-        id: slug
-        shell: bash
-        run: |
-          raw='${{ github.event.repository.name }}'
-          slug=$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\{2,\}/-/g;s/^-//;s/-$//')
-          if [ -z "$slug" ]; then slug=webapp; fi
-          echo "container=${slug}" >> "$GITHUB_OUTPUT"
-
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
-          REPO_NAME: ${{ github.event.repository.name }}
-          CONTAINER_NAME: ${{ steps.slug.outputs.container }}
+          IMAGE: ${{ needs.push_to_registry.outputs.image_tag }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
           PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: DOCKER_USER,REPO_NAME,CONTAINER_NAME,MONGO_URI,PUBLIC_APP_URL
+          envs: IMAGE,MONGO_URI,PUBLIC_APP_URL
           script: |
             set -e
-            docker pull "${DOCKER_USER}/${REPO_NAME}:latest"
-            docker stop "${CONTAINER_NAME}" || true
-            docker rm "${CONTAINER_NAME}" || true
+            # derive a safe container name from the image (everything after the last /)
+            CONTAINER=$(printf '%s' "$IMAGE" | sed 's|.*/||' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+            docker pull "${IMAGE}:latest"
+            docker stop "${CONTAINER}" || true
+            docker rm   "${CONTAINER}" || true
             FE_ARGS=""
             if [ -n "$PUBLIC_APP_URL" ]; then
               FE_ARGS="-e FRONTEND_URL=${PUBLIC_APP_URL}"
             fi
             docker run -d \
-              --name "${CONTAINER_NAME}" \
+              --name "${CONTAINER}" \
               -p 80:5000 \
               -e NODE_ENV=production \
               -e MONGO_URI="${MONGO_URI}" \
               -e MONGO_CONNECTION_STRING="${MONGO_URI}" \
               ${FE_ARGS} \
               --restart always \
-              "${DOCKER_USER}/${REPO_NAME}:latest"
+              "${IMAGE}:latest"
             docker image prune -f
