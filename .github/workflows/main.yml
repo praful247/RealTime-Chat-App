@@ -70,4 +70,4 @@ jobs:
               $IMAGE_NAME
 
             # 4. Cleanup old unused images to save space
-             docker image prune -f
+            docker image prune -f
