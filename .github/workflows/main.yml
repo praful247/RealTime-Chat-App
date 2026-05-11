@@ -59,7 +59,7 @@ jobs:
             # 3. Run the new container
             docker run -d \
               --name ${{ github.event.repository.name }} \
-              -p 80:3000 \
+              -p 80:5173 \
               --restart always \
               ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
 
