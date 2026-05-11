@@ -49,25 +49,19 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Set variables for cleaner commands
-            REPO_NAME=${{ github.event.repository.name }}
-            DOCKER_USER=${{ secrets.DOCKER_USERNAME }}
-            IMAGE_NAME=$DOCKER_USER/$REPO_NAME:latest
-
-            # 1. Pull the latest image
-            docker pull $IMAGE_NAME
+            # 1. Pull directly using GitHub Context (No bash variables)
+            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
             
-            # 2. Stop and remove the old container if it exists
-            docker stop $REPO_NAME || true
-            docker rm $REPO_NAME || true
+            # 2. Stop and remove using the Repo Name context
+            docker stop ${{ github.event.repository.name }} || true
+            docker rm ${{ github.event.repository.name }} || true
             
             # 3. Run the new container
-            # -d: background, --name: dynamic, -p: map port 80 to your app port 3000
             docker run -d \
-              --name $REPO_NAME \
-              -p 80:5173 \
+              --name ${{ github.event.repository.name }} \
+              -p 80:3000 \
               --restart always \
-              $IMAGE_NAME
+              ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
 
-            # 4. Cleanup old unused images to save space
+            # 4. Cleanup
             docker image prune -f
