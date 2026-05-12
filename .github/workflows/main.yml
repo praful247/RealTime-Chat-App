@@ -10,18 +10,18 @@ jobs:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     outputs:
-      image_tag: ${{ steps.image.outputs.tag }}
+      repo_slug: ${{ steps.slug.outputs.repo_slug }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
 
-      - name: Compute lowercase image tag
-        id: image
+      - name: Lowercase repo name for image (safe to pass between jobs)
+        id: slug
         shell: bash
         run: |
-          raw="${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}"
-          tag=$(printf '%s' "$raw" | tr '[:upper:]' '[:lower:]')
-          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          r="${{ github.event.repository.name }}"
+          s=$(printf '%s' "$r" | tr '[:upper:]' '[:lower:]')
+          echo "repo_slug=${s}" >> "$GITHUB_OUTPUT"
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -35,7 +35,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ steps.image.outputs.tag }}:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ steps.slug.outputs.repo_slug }}:latest
 
   # JOB 2: Secure SSH Deployment
   deploy:
@@ -46,16 +46,21 @@ jobs:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
-          IMAGE: ${{ needs.push_to_registry.outputs.image_tag }}
+          DOCKER_USER: ${{ secrets.DOCKER_USERNAME }}
+          REPO_SLUG: ${{ needs.push_to_registry.outputs.repo_slug }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
           PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: IMAGE,MONGO_URI,PUBLIC_APP_URL
+          envs: DOCKER_USER,REPO_SLUG,MONGO_URI,PUBLIC_APP_URL
           script: |
             set -e
+            IMAGE=$(printf '%s' "${DOCKER_USER}/${REPO_SLUG}" | tr '[:upper:]' '[:lower:]')
+            if [ -z "$REPO_SLUG" ] || [ -z "$DOCKER_USER" ]; then
+              echo "DOCKER_USER or REPO_SLUG is empty"; exit 1
+            fi
             # derive a safe container name from the image (everything after the last /)
             CONTAINER=$(printf '%s' "$IMAGE" | sed 's|.*/||' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
             docker pull "${IMAGE}:latest"
