@@ -92,4 +92,4 @@ jobs:
             fi
             echo "OK: app responds on http://127.0.0.1/health"
             echo "If the browser still cannot open the site, open EC2 Security Group inbound TCP 80 (0.0.0.0/0) and use http:// (not https) unless you add TLS."
-            docker image prune -f
+             docker image prune -f
