@@ -50,11 +50,13 @@ jobs:
           REPO_SLUG: ${{ needs.push_to_registry.outputs.repo_slug }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
           PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: DOCKER_USER,REPO_SLUG,MONGO_URI,PUBLIC_APP_URL
+          envs: DOCKER_USER,REPO_SLUG,MONGO_URI,PUBLIC_APP_URL,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET
           script: |
             set -e
             IMAGE=$(printf '%s' "${DOCKER_USER}/${REPO_SLUG}" | tr '[:upper:]' '[:lower:]')
@@ -76,6 +78,8 @@ jobs:
               -e NODE_ENV=production \
               -e MONGO_URI="${MONGO_URI}" \
               -e MONGO_CONNECTION_STRING="${MONGO_URI}" \
+              -e GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID}" \
+              -e GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET}" \
               ${FE_ARGS} \
               --restart always \
               "${IMAGE}:latest"

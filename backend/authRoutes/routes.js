@@ -2,10 +2,24 @@ import express from "express";
 import passport from "passport";
 import generatetokenandsetcookie from "../utils/jwttokens.js";
 import protectRoute from "../middleware/protectedroutes.js";
+import { googleOAuthConfigured } from "../services/passport.js";
 const router = express.Router();
+
+const requireGoogleOAuth = (req, res, next) => {
+	if (!googleOAuthConfigured) {
+		return res
+			.status(503)
+			.type("text/plain")
+			.send(
+				"Google sign-in is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET on the server (e.g. GitHub Actions secrets passed into docker run)."
+			);
+	}
+	next();
+};
 
 router.get(
   "/auth/google",
+  requireGoogleOAuth,
   (req, res, next) => {
     console.log("🔁 Google auth route hit");
     next();
@@ -22,6 +36,7 @@ router.get(
 
 router.get(
   "/auth/google/callback",
+  requireGoogleOAuth,
   passport.authenticate("google", { 
     failureRedirect: `${process.env.FRONTEND_URL || "http://localhost:5173"}/`,
 
