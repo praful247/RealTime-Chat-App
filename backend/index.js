@@ -44,6 +44,10 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 app.use(cookieParser());
 
+app.get("/health", (_req, res) => {
+	res.status(200).type("text/plain").send("ok");
+});
+
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
 

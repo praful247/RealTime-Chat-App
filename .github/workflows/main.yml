@@ -79,4 +79,13 @@ jobs:
               ${FE_ARGS} \
               --restart always \
               "${IMAGE}:latest"
+            sleep 3
+            docker ps --filter "name=${CONTAINER}"
+            if ! curl -sfS --max-time 15 "http://127.0.0.1/health" | grep -q ok; then
+              echo "=== Health check failed on the instance (app not listening on :80). Recent logs: ==="
+              docker logs "${CONTAINER}" --tail 120 2>&1 || true
+              exit 1
+            fi
+            echo "OK: app responds on http://127.0.0.1/health"
+            echo "If the browser still cannot open the site, open EC2 Security Group inbound TCP 80 (0.0.0.0/0) and use http:// (not https) unless you add TLS."
             docker image prune -f

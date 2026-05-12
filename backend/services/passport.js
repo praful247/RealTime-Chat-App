@@ -6,12 +6,16 @@ import dotenv from "dotenv";
 dotenv.config();
 const User = mongoose.model("users");
 
+const frontendBase = (
+	process.env.FRONTEND_URL || "https://realtime-chat-app-vqmj.onrender.com"
+).replace(/\/+$/, "");
+
 passport.use(
   new GoogleStrategy(
     {
       clientID: keys.googleClientID,
       clientSecret: keys.googleClientSecret,
-      callbackURL: "https://realtime-chat-app-vqmj.onrender.com/auth/google/callback",
+      callbackURL: `${frontendBase}/auth/google/callback`,
       scope:[
         'profile',
         'email',
